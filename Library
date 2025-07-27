@@ -1,0 +1,168 @@
+--// Khata UI Library (Custom Lightweight) local Library = {}
+
+local UIS = game:GetService("UserInputService") local TweenService = game:GetService("TweenService") local Players = game:GetService("Players") local LocalPlayer = Players.LocalPlayer
+
+local function Create(class, props) local inst = Instance.new(class) for k,v in pairs(props) do inst[k] = v end return inst end
+
+-- Theme hệ thống local Theme = { ["Color Background"] = Color3.fromRGB(25, 25, 25), ["Color Stroke"] = Color3.fromRGB(50, 50, 50), ["Color Text"] = Color3.fromRGB(230, 230, 230), ["Color Theme"] = Color3.fromRGB(0, 170, 255) }
+
+local function InsertTheme(obj, themeKey) if Theme[themeKey] then obj.BackgroundColor3 = Theme[themeKey] end return obj end
+
+local function Make(cornerType, parent, scale) if cornerType == "Corner" then local uic = Instance.new("UICorner") uic.CornerRadius = scale or UDim.new(0, 4) uic.Parent = parent return uic end end
+
+local function CreateTween(data) local obj, prop, val, time = data[1], data[2], data[3], data[4] or 0.25 TweenService:Create(obj, TweenInfo.new(time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { [prop] = val }):Play() end
+
+local Flags = {} local function SetFlag(flag, value) if flag then Flags[flag] = value end end
+
+local function GetFlag(flag) return Flags[flag] end
+
+local function CheckFlag(flag) return Flags[flag] ~= nil end
+
+local Funcs = {} function Funcs:FireCallback(callback, ...) if type(callback) == "function" then pcall(callback, ...) end end
+
+function Funcs:GetCallback(configs, index) return configs.Callback or configs[index] or function() end end
+
+function Funcs:ToggleVisible(obj, bool) if obj then obj.Visible = bool end end
+
+function Funcs:InsertCallback(callback, ...) return function() Funcs:FireCallback(callback, ...) end end
+
+local function ButtonFrame(container, title, desc, size) local holder = Create("TextButton", { Size = size, BackgroundTransparency = 1, Text = "", Parent = container, AutoButtonColor = false })
+
+local label = Create("TextLabel", {
+    Text = title,
+    Size = UDim2.new(1, 0, 0, 20),
+    BackgroundTransparency = 1,
+    TextColor3 = Theme["Color Text"],
+    Font = Enum.Font.Gotham,
+    TextSize = 14,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = holder
+})
+
+return holder, {
+    SetTitle = function(txt)
+        label.Text = txt
+    end,
+    SetDesc = function(txt)
+        label.Text = txt -- no desc yet
+    end
+}
+
+end
+
+--// WINDOW SETUP function Library:MakeWindow(opts) opts = opts or {} local name = opts.Name or "Window"
+
+local ScreenGui = Create("ScreenGui", {
+    Name = name,
+    ResetOnSpawn = false,
+    Parent = game.CoreGui
+})
+
+local MainFrame = InsertTheme(Create("Frame", ScreenGui, {
+    Name = "MainFrame",
+    Size = UDim2.new(0, 400, 0, 300),
+    Position = UDim2.new(0.5, -200, 0.5, -150),
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    BackgroundColor3 = Theme["Color Background"]
+}), "Background")
+Make("Corner", MainFrame, UDim.new(0, 6))
+
+local UIListLayout = Instance.new("UIListLayout", MainFrame)
+UIListLayout.Padding = UDim.new(0, 6)
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local Window = {}
+
+function Window:MakeTab(tabName)
+    local TabFrame = Create("Frame", MainFrame, {
+        Size = UDim2.new(1, -10, 0, 30),
+        BackgroundTransparency = 1,
+        Name = tabName
+    })
+
+    local Tab = {}
+
+    function Tab:AddToggle(Configs)
+        local TName = Configs[1] or Configs.Name or Configs.Title or "Toggle"
+        local TDesc = Configs.Desc or Configs.Description or ""
+        local Callback = Funcs:GetCallback(Configs, 3)
+        local Flag = Configs[4] or Configs.Flag or false
+        local Default = Configs[2] or Configs.Default or false
+        if CheckFlag(Flag) then Default = GetFlag(Flag) end
+
+        local Button, LabelFunc = ButtonFrame(TabFrame, TName, TDesc, UDim2.new(1, -38, 0, 28))
+
+        local ToggleHolder = InsertTheme(Create("Frame", Button, {
+            Size = UDim2.new(0, 35, 0, 18),
+            Position = UDim2.new(1, -10, 0.5),
+            AnchorPoint = Vector2.new(1, 0.5),
+            BackgroundColor3 = Theme["Color Stroke"]
+        }), "Stroke")
+        Make("Corner", ToggleHolder, UDim.new(0.5, 0))
+
+        local Slider = Create("Frame", ToggleHolder, {
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0.8, 0, 0.8, 0),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            AnchorPoint = Vector2.new(0.5, 0.5)
+        })
+
+        local Toggle = InsertTheme(Create("Frame", Slider, {
+            Size = UDim2.new(0, 12, 0, 12),
+            Position = UDim2.new(0, 0, 0.5),
+            AnchorPoint = Vector2.new(0, 0.5),
+            BackgroundColor3 = Theme["Color Theme"]
+        }), "Theme")
+        Make("Corner", Toggle, UDim.new(0.5, 0))
+
+        local WaitClick
+        local function SetToggle(Val)
+            if WaitClick then return end
+            WaitClick, Default = true, Val
+            SetFlag(Flag, Default)
+            Funcs:FireCallback(Callback, Default)
+            if Default then
+                CreateTween{Toggle, "Position", UDim2.new(1, 0, 0.5), 0.25}
+                CreateTween{Toggle, "BackgroundTransparency", 0, 0.25}
+                CreateTween{Toggle, "AnchorPoint", Vector2.new(1, 0.5), 0.25}
+            else
+                CreateTween{Toggle, "Position", UDim2.new(0, 0, 0.5), 0.25}
+                CreateTween{Toggle, "BackgroundTransparency", 0.8, 0.25}
+                CreateTween{Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.25}
+            end
+            WaitClick = false
+        end; task.spawn(SetToggle, Default)
+
+        Button.Activated:Connect(function()
+            SetToggle(not Default)
+        end)
+
+        local ToggleObj = {}
+        function ToggleObj:Visible(...) Funcs:ToggleVisible(Button, ...) end
+        function ToggleObj:Destroy() Button:Destroy() end
+        function ToggleObj:Callback(...) Funcs:InsertCallback(Callback, ...)() end
+        function ToggleObj:Set(v1, v2)
+            if type(v1) == "string" and type(v2) == "string" then
+                LabelFunc:SetTitle(v1)
+                LabelFunc:SetDesc(v2)
+            elseif type(v1) == "string" then
+                LabelFunc:SetTitle(v1, false, true)
+            elseif type(v1) == "boolean" then
+                if WaitClick and v2 then repeat task.wait() until not WaitClick end
+                task.spawn(SetToggle, v1)
+            elseif type(v1) == "function" then
+                Callback = v1
+            end
+        end
+        return ToggleObj
+    end
+
+    return Tab
+end
+
+return Window
+
+end
+
+return Library
+
