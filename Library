@@ -1,107 +1,184 @@
+-- KhataHybridUI.lua - UI tổng hợp từ Rayfield, Fluent, Wizard, Material
+-- Tác giả: Khata ✨
+
 local Library = {}
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
 
-local UIS = game:GetService("UserInputService") local TweenService = game:GetService("TweenService") local Players = game:GetService("Players") local LocalPlayer = Players.LocalPlayer
+function Library:MakeWindow(opts)
+    local ScreenGui = Instance.new("ScreenGui", CoreGui)
+    ScreenGui.Name = opts.Title or "KhataFusionUI"
+    ScreenGui.ResetOnSpawn = false
 
-local function Create(class, props) local inst = Instance.new(class) for k,v in pairs(props) do inst[k] = v end return inst end
+    local Main = Instance.new("Frame", ScreenGui)
+    Main.Size = UDim2.new(0, 450, 0, 400)
+    Main.Position = UDim2.new(0.5, -225, 0.5, -200)
+    Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Main.BorderSizePixel = 0
+    Main.ClipsDescendants = true
 
-local Theme = { ["Color Background"] = Color3.fromRGB(25, 25, 25), ["Color Stroke"] = Color3.fromRGB(50, 50, 50), ["Color Text"] = Color3.fromRGB(230, 230, 230), ["Color Theme"] = Color3.fromRGB(0, 170, 255) }
+    Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
+    Instance.new("UIListLayout", Main).Padding = UDim.new(0, 6)
 
-local function InsertTheme(obj, themeKey) if Theme[themeKey] then obj.BackgroundColor3 = Theme[themeKey] end return obj end
+    local Window = {}
 
-local function Make(cornerType, parent, scale) if cornerType == "Corner" then local uic = Instance.new("UICorner") uic.CornerRadius = scale or UDim.new(0, 4) uic.Parent = parent return uic end end
+    function Window:MakeTab(optsTab)
+        local Tab = Instance.new("Frame", Main)
+        Tab.Size = UDim2.new(1, -20, 0, 300)
+        Tab.BackgroundTransparency = 1
+        Tab.Name = optsTab.Title or "Tab"
+        Instance.new("UIListLayout", Tab).Padding = UDim.new(0, 5)
 
-local function CreateTween(data) local obj, prop, val, time = data[1], data[2], data[3], data[4] or 0.25 TweenService:Create(obj, TweenInfo.new(time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {[prop] = val}):Play() end
+        local PublicTab = {}
 
-local Flags = {} local function SetFlag(flag, value) if flag then Flags[flag] = value end end local function GetFlag(flag) return Flags[flag] end local function CheckFlag(flag) return Flags[flag] ~= nil end
-
-local Funcs = {} function Funcs:FireCallback(callback, ...) if type(callback) == "function" then pcall(callback, ...) end end function Funcs:GetCallback(configs, index) return configs.Callback or configs[index] or function() end end function Funcs:ToggleVisible(obj, bool) if obj then obj.Visible = bool end end function Funcs:InsertCallback(callback, ...) return function() Funcs:FireCallback(callback, ...) end end
-
-local function ButtonFrame(container, title, desc, size) local holder = Create("TextButton", {Size = size, BackgroundTransparency = 1, Text = "", Parent = container, AutoButtonColor = false}) local label = Create("TextLabel", { Text = title, Size = UDim2.new(1, 0, 0, 20), BackgroundTransparency = 1, TextColor3 = Theme["Color Text"], Font = Enum.Font.Gotham, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = holder }) return holder, { SetTitle = function(txt) label.Text = txt end, SetDesc = function(txt) label.Text = txt end } end
-
-function Library:MakeWindow(opts) opts = opts or {} local name = opts.Name or "Window" local ScreenGui = Create("ScreenGui", {Name = name, ResetOnSpawn = false, Parent = game.CoreGui}) local MainFrame = InsertTheme(Create("Frame", ScreenGui, { Name = "MainFrame", Size = UDim2.new(0, 400, 0, 300), Position = UDim2.new(0.5, -200, 0.5, -150), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundColor3 = Theme["Color Background"] }), "Background") Make("Corner", MainFrame, UDim.new(0, 6)) local UIListLayout = Instance.new("UIListLayout", MainFrame) UIListLayout.Padding = UDim.new(0, 6) UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
-local Window = {}
-function Window:MakeTab(tabName)
-    local TabFrame = Create("Frame", MainFrame, {
-        Size = UDim2.new(1, -10, 0, 30),
-        BackgroundTransparency = 1,
-        Name = tabName
-    })
-
-    local Tab = {}
-    function Tab:AddToggle(Configs)
-        local TName = Configs[1] or Configs.Name or Configs.Title or "Toggle"
-        local TDesc = Configs.Desc or Configs.Description or ""
-        local Callback = Funcs:GetCallback(Configs, 3)
-        local Flag = Configs[4] or Configs.Flag or false
-        local Default = Configs[2] or Configs.Default or false
-        if CheckFlag(Flag) then Default = GetFlag(Flag) end
-        local Button, LabelFunc = ButtonFrame(TabFrame, TName, TDesc, UDim2.new(1, -38, 0, 28))
-        local ToggleHolder = InsertTheme(Create("Frame", Button, {
-            Size = UDim2.new(0, 35, 0, 18),
-            Position = UDim2.new(1, -10, 0.5),
-            AnchorPoint = Vector2.new(1, 0.5),
-            BackgroundColor3 = Theme["Color Stroke"]
-        }), "Stroke")
-        Make("Corner", ToggleHolder, UDim.new(0.5, 0))
-        local Slider = Create("Frame", ToggleHolder, {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(0.8, 0, 0.8, 0),
-            Position = UDim2.new(0.5, 0, 0.5, 0),
-            AnchorPoint = Vector2.new(0.5, 0.5)
-        })
-        local Toggle = InsertTheme(Create("Frame", Slider, {
-            Size = UDim2.new(0, 12, 0, 12),
-            Position = UDim2.new(0, 0, 0.5),
-            AnchorPoint = Vector2.new(0, 0.5),
-            BackgroundColor3 = Theme["Color Theme"]
-        }), "Theme")
-        Make("Corner", Toggle, UDim.new(0.5, 0))
-        local WaitClick
-        local function SetToggle(Val)
-            if WaitClick then return end
-            WaitClick, Default = true, Val
-            SetFlag(Flag, Default)
-            Funcs:FireCallback(Callback, Default)
-            if Default then
-                CreateTween{Toggle, "Position", UDim2.new(1, 0, 0.5), 0.25}
-                CreateTween{Toggle, "BackgroundTransparency", 0, 0.25}
-                CreateTween{Toggle, "AnchorPoint", Vector2.new(1, 0.5), 0.25}
-            else
-                CreateTween{Toggle, "Position", UDim2.new(0, 0, 0.5), 0.25}
-                CreateTween{Toggle, "BackgroundTransparency", 0.8, 0.25}
-                CreateTween{Toggle, "AnchorPoint", Vector2.new(0, 0.5), 0.25}
-            end
-            WaitClick = false
+        function PublicTab:AddButton(opts)
+            local Btn = Instance.new("TextButton", Tab)
+            Btn.Size = UDim2.new(1, 0, 0, 36)
+            Btn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+            Btn.TextColor3 = Color3.new(1, 1, 1)
+            Btn.Font = Enum.Font.GothamBold
+            Btn.TextSize = 16
+            Btn.Text = opts.Title or "Button"
+            Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 8)
+            Btn.MouseButton1Click:Connect(function()
+                if opts.Callback then pcall(opts.Callback) end
+            end)
         end
-        task.spawn(SetToggle, Default)
-        Button.Activated:Connect(function()
-            SetToggle(not Default)
-        end)
-        local ToggleObj = {}
-        function ToggleObj:Visible(...) Funcs:ToggleVisible(Button, ...) end
-        function ToggleObj:Destroy() Button:Destroy() end
-        function ToggleObj:Callback(...) Funcs:InsertCallback(Callback, ...)() end
-        function ToggleObj:Set(v1, v2)
-            if type(v1) == "string" and type(v2) == "string" then
-                LabelFunc:SetTitle(v1)
-                LabelFunc:SetDesc(v2)
-            elseif type(v1) == "string" then
-                LabelFunc:SetTitle(v1, false, true)
-            elseif type(v1) == "boolean" then
-                if WaitClick and v2 then repeat task.wait() until not WaitClick end
-                task.spawn(SetToggle, v1)
-            elseif type(v1) == "function" then
-                Callback = v1
-            end
+
+        function PublicTab:AddToggle(opts)
+            local Frame = Instance.new("Frame", Tab)
+            Frame.Size = UDim2.new(1, 0, 0, 32)
+            Frame.BackgroundTransparency = 1
+
+            local Btn = Instance.new("TextButton", Frame)
+            Btn.Size = UDim2.new(0.85, 0, 1, 0)
+            Btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Btn.Text = opts.Title or "Toggle"
+            Btn.TextColor3 = Color3.new(1, 1, 1)
+            Btn.Font = Enum.Font.GothamSemibold
+            Btn.TextSize = 15
+            Instance.new("UICorner", Btn)
+
+            local State = Instance.new("Frame", Frame)
+            State.Size = UDim2.new(0.15, -6, 1, 0)
+            State.Position = UDim2.new(0.85, 6, 0, 0)
+            State.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            Instance.new("UICorner", State)
+
+            local toggled = false
+            Btn.MouseButton1Click:Connect(function()
+                toggled = not toggled
+                State.BackgroundColor3 = toggled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(100, 0, 0)
+                if opts.Callback then pcall(opts.Callback, toggled) end
+            end)
         end
-        return ToggleObj
+
+        function PublicTab:AddSlider(opts)
+            local Holder = Instance.new("Frame", Tab)
+            Holder.Size = UDim2.new(1, 0, 0, 36)
+            Holder.BackgroundTransparency = 1
+
+            local Label = Instance.new("TextLabel", Holder)
+            Label.Text = opts.Title or "Slider"
+            Label.Font = Enum.Font.GothamSemibold
+            Label.TextColor3 = Color3.new(1,1,1)
+            Label.TextSize = 14
+            Label.BackgroundTransparency = 1
+            Label.Size = UDim2.new(0.3, 0, 1, 0)
+
+            local SliderBack = Instance.new("Frame", Holder)
+            SliderBack.Position = UDim2.new(0.32, 0, 0.3, 0)
+            SliderBack.Size = UDim2.new(0.65, 0, 0.4, 0)
+            SliderBack.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            Instance.new("UICorner", SliderBack)
+
+            local Fill = Instance.new("Frame", SliderBack)
+            Fill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+            Fill.Size = UDim2.new(0, 0, 1, 0)
+
+            local dragging = false
+            local function update(input)
+                local size = math.clamp((input.Position.X - SliderBack.AbsolutePosition.X) / SliderBack.AbsoluteSize.X, 0, 1)
+                Fill.Size = UDim2.new(size, 0, 1, 0)
+                local value = math.floor(((opts.Max or 100) - (opts.Min or 0)) * size + (opts.Min or 0))
+                if opts.Callback then pcall(opts.Callback, value) end
+            end
+
+            SliderBack.InputBegan:Connect(function(i)
+                if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
+            end)
+
+            game:GetService("UserInputService").InputChanged:Connect(function(i)
+                if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then update(i) end
+            end)
+
+            game:GetService("UserInputService").InputEnded:Connect(function(i)
+                if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+            end)
+        end
+
+        function PublicTab:AddTextbox(opts)
+            local Box = Instance.new("TextBox", Tab)
+            Box.Size = UDim2.new(1, 0, 0, 32)
+            Box.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+            Box.PlaceholderText = opts.Placeholder or "Nhập gì đó..."
+            Box.TextColor3 = Color3.new(1,1,1)
+            Box.Font = Enum.Font.Gotham
+            Box.TextSize = 14
+            Instance.new("UICorner", Box)
+            Box.FocusLost:Connect(function(enter)
+                if enter and opts.Callback then
+                    pcall(opts.Callback, Box.Text)
+                end
+            end)
+        end
+
+        function PublicTab:AddDropdown(opts)
+            local Holder = Instance.new("Frame", Tab)
+            Holder.Size = UDim2.new(1, 0, 0, 36)
+            Holder.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            Instance.new("UICorner", Holder)
+
+            local Btn = Instance.new("TextButton", Holder)
+            Btn.Text = opts.Title or "Dropdown"
+            Btn.Size = UDim2.new(1, 0, 1, 0)
+            Btn.BackgroundTransparency = 1
+            Btn.TextColor3 = Color3.new(1, 1, 1)
+            Btn.Font = Enum.Font.Gotham
+            Btn.TextSize = 14
+
+            local ListOpen = false
+            local List = {}
+
+            Btn.MouseButton1Click:Connect(function()
+                if ListOpen then
+                    for _, v in pairs(List) do v:Destroy() end
+                    ListOpen = false
+                else
+                    for i, item in pairs(opts.Options or {}) do
+                        local Choice = Instance.new("TextButton", Tab)
+                        Choice.Text = tostring(item)
+                        Choice.Size = UDim2.new(1, 0, 0, 28)
+                        Choice.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+                        Choice.TextColor3 = Color3.new(1,1,1)
+                        Instance.new("UICorner", Choice)
+                        table.insert(List, Choice)
+                        Choice.MouseButton1Click:Connect(function()
+                            Btn.Text = tostring(item)
+                            for _, v in pairs(List) do v:Destroy() end
+                            ListOpen = false
+                            if opts.Callback then pcall(opts.Callback, item) end
+                        end)
+                    end
+                    ListOpen = true
+                end
+            end)
+        end
+
+        return PublicTab
     end
-    return Tab
-end
-return Window
 
+    return Window
 end
 
 return Library
-
