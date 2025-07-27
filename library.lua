@@ -1,13 +1,13 @@
--- KhataHub V3 - UI chuẩn đẹp + màu đen đỏ trắng ✨ -- Tác giả: Khata
+-- KhataHub V4 - UI bảy màu nhấp nháy + toggle thông minh + kéo chạm ✨ -- Tác giả: Khata
 
-local Library = {} local CoreGui = game:GetService("CoreGui") local TweenService = game:GetService("TweenService") local Players = game:GetService("Players") local UIS = game:GetService("UserInputService")
+local Library = {} local CoreGui = game:GetService("CoreGui") local TweenService = game:GetService("TweenService") local Players = game:GetService("Players") local UIS = game:GetService("UserInputService") local RS = game:GetService("RunService")
 
 function Library:MakeWindow(opts) local ScreenGui = Instance.new("ScreenGui") ScreenGui.Name = opts.Title or "KhataHub" ScreenGui.ResetOnSpawn = false ScreenGui.IgnoreGuiInset = true ScreenGui.Parent = CoreGui
 
 local ToggleBtn = Instance.new("ImageButton", ScreenGui)
 ToggleBtn.Size = UDim2.new(0, 36, 0, 36)
 ToggleBtn.Position = UDim2.new(0, 12, 0, 12)
-ToggleBtn.Image = opts.Icon or "rbxassetid://0" -- bạn có thể thay đổi sau
+ToggleBtn.Image = opts.Icon or "rbxassetid://0"
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ToggleBtn.BorderSizePixel = 0
 Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 6)
@@ -21,6 +21,13 @@ Main.Visible = true
 Main.Parent = ScreenGui
 
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
+
+-- Rainbow background effect
+local hue = 0
+RS.RenderStepped:Connect(function()
+    hue = (hue + 1) % 360
+    Main.BackgroundColor3 = Color3.fromHSV(hue / 360, 0.5, 0.5)
+end)
 
 local TopBar = Instance.new("Frame", Main)
 TopBar.Size = UDim2.new(1, 0, 0, 40)
@@ -38,24 +45,26 @@ Title.Size = UDim2.new(1, -20, 1, 0)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
 local dragging, dragStart, startPos
-TopBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+local function beginDrag(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.Touch then
         dragging = true
         dragStart = input.Position
         startPos = Main.Position
     end
-end)
+end
 
-UIS.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+local function updateDrag(input)
+    if dragging then
         local delta = input.Position - dragStart
         Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
                                    startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
-end)
+end
 
+TopBar.InputBegan:Connect(beginDrag)
+UIS.InputChanged:Connect(updateDrag)
 UIS.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.Touch then
         dragging = false
     end
 end)
@@ -121,6 +130,8 @@ function Window:MakeTab(tabInfo)
         Instance.new("UICorner", Circle).CornerRadius = UDim.new(1, 0)
 
         local toggled = false
+        local toggleLoop = nil
+
         Back.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 toggled = not toggled
@@ -128,7 +139,15 @@ function Window:MakeTab(tabInfo)
                     Position = toggled and UDim2.new(1, -19, 0, 1) or UDim2.new(0, 1, 0, 1),
                     BackgroundColor3 = toggled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(170, 0, 0)
                 }):Play()
-                if opts.Callback then pcall(opts.Callback, toggled) end
+
+                if toggleLoop then toggleLoop:Disconnect() end
+                if toggled then
+                    toggleLoop = RS.RenderStepped:Connect(function()
+                        if opts.Callback then pcall(opts.Callback, true) end
+                    end)
+                else
+                    if opts.Callback then pcall(opts.Callback, false) end
+                end
             end
         end)
     end
