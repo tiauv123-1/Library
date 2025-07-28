@@ -1,15 +1,16 @@
--- KhataHub V5 - Rainbow UI ✨ Toả sáng thật sự -- Tác giả: Khata
+-- KhataHub V6 - UI Xịn Xò Cho Mobile ✨ -- Bản đặc biệt: Rainbow + Toggle chuẩn + Logo dễ bấm
 
 local Library = {} local CoreGui = game:GetService("CoreGui") local TweenService = game:GetService("TweenService") local Players = game:GetService("Players") local UIS = game:GetService("UserInputService") local RS = game:GetService("RunService")
 
 function Library:MakeWindow(opts) local ScreenGui = Instance.new("ScreenGui") ScreenGui.Name = opts.Title or "KhataHub" ScreenGui.ResetOnSpawn = false ScreenGui.IgnoreGuiInset = true ScreenGui.Parent = CoreGui
 
 local ToggleBtn = Instance.new("ImageButton", ScreenGui)
-ToggleBtn.Size = UDim2.new(0, 36, 0, 36)
-ToggleBtn.Position = UDim2.new(0, 12, 0, 12)
+ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
+ToggleBtn.Position = UDim2.new(0, 12, 1, -60)
 ToggleBtn.Image = opts.Icon or "rbxassetid://114803447252543"
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 ToggleBtn.BorderSizePixel = 0
+ToggleBtn.ZIndex = 999
 Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 6)
 
 local Main = Instance.new("Frame")
@@ -19,15 +20,15 @@ Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Main.BorderSizePixel = 0
 Main.Visible = true
 Main.Parent = ScreenGui
-Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
 
--- Rainbow frame effect
+-- Rainbow background & Title effect
 local hue = 0
 RS.RenderStepped:Connect(function()
     hue = (hue + 1) % 360
     local color = Color3.fromHSV(hue / 360, 1, 1)
     Main.BackgroundColor3 = color
-    if Main:FindFirstChild("TopBar") then
+    if Main:FindFirstChild("TopBar") and Main.TopBar:FindFirstChild("Title") then
         Main.TopBar.Title.TextColor3 = color
     end
 end)
@@ -50,7 +51,7 @@ Title.Position = UDim2.new(0, 10, 0, 0)
 Title.Size = UDim2.new(1, -20, 1, 0)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Dragging UI
+-- Dragging support for mobile/touch
 local dragging, dragStart, startPos
 local function beginDrag(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -86,7 +87,7 @@ function Window:MakeTab(tabInfo)
     local Tab = Instance.new("Frame", Main)
     Tab.Size = UDim2.new(1, -20, 1, -50)
     Tab.Position = UDim2.new(0, 10, 0, 45)
-    Tab.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Tab.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     Tab.Name = tabInfo.Title or "Tab"
 
     local List = Instance.new("UIListLayout", Tab)
@@ -137,24 +138,14 @@ function Window:MakeTab(tabInfo)
         Instance.new("UICorner", Circle).CornerRadius = UDim.new(1, 0)
 
         local toggled = false
-        local toggleLoop = nil
-
         Back.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 toggled = not toggled
-                TweenService:Create(Circle, TweenInfo.new(0.2), {
+                TweenService:Create(Circle, TweenInfo.new(0.25), {
                     Position = toggled and UDim2.new(1, -19, 0, 1) or UDim2.new(0, 1, 0, 1),
-                    BackgroundColor3 = toggled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(170, 0, 0)
+                    BackgroundColor3 = toggled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
                 }):Play()
-
-                if toggleLoop then toggleLoop:Disconnect() end
-                if toggled then
-                    toggleLoop = RS.RenderStepped:Connect(function()
-                        if opts.Callback then pcall(opts.Callback, true) end
-                    end)
-                else
-                    if opts.Callback then pcall(opts.Callback, false) end
-                end
+                if opts.Callback then pcall(opts.Callback, toggled) end
             end
         end)
     end
