@@ -1,4 +1,4 @@
--- KhataHub V4 - UI bảy màu nhấp nháy + toggle thông minh + kéo chạm ✨ -- Tác giả: Khata
+-- KhataHub V5 - Rainbow UI ✨ Toả sáng thật sự -- Tác giả: Khata
 
 local Library = {} local CoreGui = game:GetService("CoreGui") local TweenService = game:GetService("TweenService") local Players = game:GetService("Players") local UIS = game:GetService("UserInputService") local RS = game:GetService("RunService")
 
@@ -7,7 +7,7 @@ function Library:MakeWindow(opts) local ScreenGui = Instance.new("ScreenGui") Sc
 local ToggleBtn = Instance.new("ImageButton", ScreenGui)
 ToggleBtn.Size = UDim2.new(0, 36, 0, 36)
 ToggleBtn.Position = UDim2.new(0, 12, 0, 12)
-ToggleBtn.Image = opts.Icon or "rbxassetid://0"
+ToggleBtn.Image = opts.Icon or "rbxassetid://114803447252543"
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ToggleBtn.BorderSizePixel = 0
 Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 6)
@@ -19,22 +19,28 @@ Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Main.BorderSizePixel = 0
 Main.Visible = true
 Main.Parent = ScreenGui
-
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
 
--- Rainbow background effect
+-- Rainbow frame effect
 local hue = 0
 RS.RenderStepped:Connect(function()
     hue = (hue + 1) % 360
-    Main.BackgroundColor3 = Color3.fromHSV(hue / 360, 0.5, 0.5)
+    local color = Color3.fromHSV(hue / 360, 1, 1)
+    Main.BackgroundColor3 = color
+    if Main:FindFirstChild("TopBar") then
+        Main.TopBar.Title.TextColor3 = color
+    end
 end)
 
-local TopBar = Instance.new("Frame", Main)
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
 TopBar.Size = UDim2.new(1, 0, 0, 40)
-TopBar.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+TopBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 TopBar.BorderSizePixel = 0
+TopBar.Parent = Main
 
 local Title = Instance.new("TextLabel", TopBar)
+Title.Name = "Title"
 Title.Text = opts.Title or "Khata Hub"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
@@ -44,12 +50,18 @@ Title.Position = UDim2.new(0, 10, 0, 0)
 Title.Size = UDim2.new(1, -20, 1, 0)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
+-- Dragging UI
 local dragging, dragStart, startPos
 local function beginDrag(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.Touch then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = Main.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
     end
 end
 
@@ -63,11 +75,6 @@ end
 
 TopBar.InputBegan:Connect(beginDrag)
 UIS.InputChanged:Connect(updateDrag)
-UIS.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.Touch then
-        dragging = false
-    end
-end)
 
 ToggleBtn.MouseButton1Click:Connect(function()
     Main.Visible = not Main.Visible
