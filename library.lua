@@ -1,4 +1,4 @@
--- KhataHub V6 - UI Xịn Xò Cho Mobile ✨ -- Bản đặc biệt: Rainbow + Toggle chuẩn + Logo dễ bấm
+-- KhataHub V7 - UI có Tab chuyển mượt + Rainbow + Mobile -- Tác giả: Khata
 
 local Library = {} local CoreGui = game:GetService("CoreGui") local TweenService = game:GetService("TweenService") local Players = game:GetService("Players") local UIS = game:GetService("UserInputService") local RS = game:GetService("RunService")
 
@@ -51,7 +51,7 @@ Title.Position = UDim2.new(0, 10, 0, 0)
 Title.Size = UDim2.new(1, -20, 1, 0)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 
--- Dragging support for mobile/touch
+-- Drag support
 local dragging, dragStart, startPos
 local function beginDrag(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -59,13 +59,10 @@ local function beginDrag(input)
         dragStart = input.Position
         startPos = Main.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
         end)
     end
 end
-
 local function updateDrag(input)
     if dragging then
         local delta = input.Position - dragStart
@@ -73,7 +70,6 @@ local function updateDrag(input)
                                    startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
 end
-
 TopBar.InputBegan:Connect(beginDrag)
 UIS.InputChanged:Connect(updateDrag)
 
@@ -81,23 +77,63 @@ ToggleBtn.MouseButton1Click:Connect(function()
     Main.Visible = not Main.Visible
 end)
 
+local TabButtons = Instance.new("Frame", Main)
+TabButtons.Name = "TabButtons"
+TabButtons.Size = UDim2.new(1, 0, 0, 30)
+TabButtons.Position = UDim2.new(0, 0, 0, 40)
+TabButtons.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+
+local TabBtnLayout = Instance.new("UIListLayout", TabButtons)
+TabBtnLayout.FillDirection = Enum.FillDirection.Horizontal
+TabBtnLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabBtnLayout.Padding = UDim.new(0, 4)
+
+local TabContentHolder = Instance.new("Frame", Main)
+TabContentHolder.Name = "TabContentHolder"
+TabContentHolder.Size = UDim2.new(1, -20, 1, -80)
+TabContentHolder.Position = UDim2.new(0, 10, 0, 75)
+TabContentHolder.BackgroundTransparency = 1
+
 local Window = {}
+local Tabs = {}
+local CurrentTab = nil
 
 function Window:MakeTab(tabInfo)
-    local Tab = Instance.new("Frame", Main)
-    Tab.Size = UDim2.new(1, -20, 1, -50)
-    Tab.Position = UDim2.new(0, 10, 0, 45)
-    Tab.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-    Tab.Name = tabInfo.Title or "Tab"
+    local TabFrame = Instance.new("Frame")
+    TabFrame.Size = UDim2.new(1, 0, 1, 0)
+    TabFrame.BackgroundTransparency = 1
+    TabFrame.Visible = false
+    TabFrame.Name = tabInfo.Title or "Tab"
+    TabFrame.Parent = TabContentHolder
 
-    local List = Instance.new("UIListLayout", Tab)
-    List.Padding = UDim.new(0, 6)
-    List.SortOrder = Enum.SortOrder.LayoutOrder
+    local Layout = Instance.new("UIListLayout", TabFrame)
+    Layout.Padding = UDim.new(0, 6)
+    Layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local Btn = Instance.new("TextButton", TabButtons)
+    Btn.Text = tabInfo.Title or "Tab"
+    Btn.Size = UDim2.new(0, 100, 1, 0)
+    Btn.TextColor3 = Color3.new(1, 1, 1)
+    Btn.Font = Enum.Font.Gotham
+    Btn.TextSize = 14
+    Btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 6)
+
+    Btn.MouseButton1Click:Connect(function()
+        for _, t in pairs(Tabs) do t.Frame.Visible = false end
+        TabFrame.Visible = true
+        CurrentTab = TabFrame
+    end)
+
+    if not CurrentTab then
+        TabFrame.Visible = true
+        CurrentTab = TabFrame
+    end
 
     local PublicTab = {}
 
     function PublicTab:AddButton(info)
-        local Btn = Instance.new("TextButton", Tab)
+        local Btn = Instance.new("TextButton", TabFrame)
         Btn.Size = UDim2.new(1, 0, 0, 32)
         Btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
         Btn.Text = info.Title or "Button"
@@ -111,7 +147,7 @@ function Window:MakeTab(tabInfo)
     end
 
     function PublicTab:AddToggle(opts)
-        local Holder = Instance.new("Frame", Tab)
+        local Holder = Instance.new("Frame", TabFrame)
         Holder.Size = UDim2.new(1, 0, 0, 30)
         Holder.BackgroundTransparency = 1
 
@@ -150,6 +186,7 @@ function Window:MakeTab(tabInfo)
         end)
     end
 
+    table.insert(Tabs, { Frame = TabFrame, Button = Btn })
     return PublicTab
 end
 
