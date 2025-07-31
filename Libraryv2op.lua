@@ -1,178 +1,94 @@
---// KHATA UI LIBRARY - HỖ TRỢ NHIỀU TAB, TWEEN, DRAG local KhataUI = {} local TweenService = game:GetService("TweenService") local Players = game:GetService("Players") local LocalPlayer = Players.LocalPlayer local UserInputService = game:GetService("UserInputService")
+--// REDz Hub UI Library (Full GUI Framework)
 
-local function CreateTween(Object, Property, Value, Time) local tween = TweenService:Create(Object, TweenInfo.new(Time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { [Property] = Value }) tween:Play() end
+local TweenService = game:GetService("TweenService") local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
 
-function KhataUI:CreateWindow(titleText) local ScreenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui")) ScreenGui.Name = "KhataUI" ScreenGui.ResetOnSpawn = false
+-- Helper: Create Instances function Create(class, parent, props) local inst = Instance.new(class) for i, v in pairs(props) do inst[i] = v end inst.Parent = parent return inst end
 
-local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0, 500, 0, 320)
-Main.Position = UDim2.new(0.3, 0, 0.3, 0)
-Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-Main.BorderSizePixel = 0
-Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 6)
+function Corner(inst) local c = Instance.new("UICorner") c.CornerRadius = UDim.new(0, 4) c.Parent = inst end
 
--- Drag UI
-local dragging, dragInput, dragStart, startPos
-Main.Active = true
-Main.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = Main.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
+function Stroke(inst, props) local s = Instance.new("UIStroke") for i, v in pairs(props or {}) do s[i] = v end s.Parent = inst end
+
+function CreateTween(instance, prop, value, time, tweenWait) local tween = TweenService:Create(instance, TweenInfo.new(time, Enum.EasingStyle.Linear), {[prop] = value}) tween:Play() if tweenWait then tween.Completed:Wait() end end
+
+function TextSetColor(textLabel) if not textLabel then return end spawn(function() while task.wait(0.1) do if textLabel.Parent == nil then break end textLabel.TextColor3 = Color3.fromHSV(tick() % 5 / 5, 1, 1) end end) end
+
+function AddButton(parent, Configs) local Callback = Configs.Callback or function() end local ButtonText = Configs.Text or "Button" local ButtonName = Configs.Name or "Button"
+
+local Button = Create("TextButton", parent, { Name = ButtonName, Size = UDim2.new(1, 0, 0, 30), BackgroundColor3 = Color3.fromRGB(40, 40, 40), Font = Enum.Font.Gotham, Text = ButtonText, TextColor3 = Color3.fromRGB(255, 255, 255), TextSize = 14 })
+
+Corner(Button) Stroke(Button)
+
+Button.MouseButton1Click:Connect(function() Callback() end)
+
+return Button end
+
+function AddButtonWithIcon(parent, Configs) local Callback = Configs.Callback or function() end local Configs_HUB = Configs.Configs_HUB or { Cor_Stroke = Color3.fromRGB(255, 255, 255) }
+
+local TextButton = Create("TextButton", parent, { Size = UDim2.new(1, 0, 0, 30), BackgroundColor3 = Color3.fromRGB(40, 40, 40), Font = Enum.Font.GothamBold, Text = Configs.Text or "Button", TextColor3 = Color3.fromRGB(255, 255, 255), TextSize = 14 }) Corner(TextButton) Stroke(TextButton)
+
+local TextLabel = Create("TextLabel", TextButton, { Text = Configs.Text or "Button", Size = UDim2.new(1, -30, 1, 0), Position = UDim2.new(0, 30, 0, 0), BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left })
+
+local ImageLabel = Create("ImageLabel", TextButton, { Image = "rbxassetid://15155219405", Size = UDim2.new(0, 20, 0, 20), Position = UDim2.new(0, 5, 0, 2.5), BackgroundTransparency = 1, ImageColor3 = Configs_HUB.Cor_Stroke })
+
+TextButton.MouseButton1Click:Connect(function() Callback("Click!!") CreateTween(ImageLabel, "ImageColor3", Color3.fromRGB(28, 120, 212), 0.2, true) CreateTween(ImageLabel, "ImageColor3", Configs_HUB.Cor_Stroke, 0.2, false) end)
+
+TextSetColor(TextLabel) end
+
+function AddToggle(parent, Configs) local toggled = false local Title = Configs.Name or "Toggle" local Callback = Configs.Callback or function() end
+
+local Button = Create("TextButton", parent, { Size = UDim2.new(1, 0, 0, 30), BackgroundColor3 = Color3.fromRGB(25, 25, 25), Text = Title, TextColor3 = Color3.fromRGB(255, 255, 255), Font = Enum.Font.Gotham, TextSize = 14 }) Corner(Button) Stroke(Button)
+
+Button.MouseButton1Click:Connect(function() toggled = not toggled Callback(toggled) Button.BackgroundColor3 = toggled and Color3.fromRGB(181, 1, 31) or Color3.fromRGB(25, 25, 25) end) end
+
+function AddSlider(parent, Configs) local SliderName = Configs.Name or "Slider!!" local Increase = Configs.Increase or 1 local MinValue = (Configs.MinValue or 10) / Increase local MaxValue = (Configs.MaxValue or 100) / Increase local Default = Configs.Default or 25 local Callback = Configs.Callback or function() end
+
+local Frame = Create("TextButton", parent, { Size = UDim2.new(1, 0, 0, 25), BackgroundColor3 = Color3.fromRGB(30, 30, 30), Name = "Frame", Text = SliderName }) Corner(Frame) Stroke(Frame) end
+
+function AddDropdown(parent, Configs) local DropdownName = Configs.Name or "Dropdown!!" local Default = Configs.Default or "Option" local Options = Configs.Options or {"1", "2", "3"} local Callback = Configs.Callback or function() end
+
+local Frame = Create("TextButton", parent, { Size = UDim2.new(1, 0, 0, 30), BackgroundColor3 = Color3.fromRGB(35, 35, 35), Text = Default, Font = Enum.Font.Gotham, TextColor3 = Color3.fromRGB(255,255,255), TextSize = 14 }) Corner(Frame) Stroke(Frame)
+
+Frame.MouseButton1Click:Connect(function() Callback(Default) end) end
+
+function MakeWindow(Configs) local title = Configs.Hub.Title or "REDz HUB" local KeySystem = Configs.Key.KeySystem or false local KeyKey = Configs.Key.Keys or {"123"} local KeyVerify = false
+
+if KeySystem then local KeyMenu = Create("Frame", ScreenGui, { Size = UDim2.new(0, 400, 0, 200), Position = UDim2.new(0.5, 0, 0.5, 0), AnchorPoint = Vector2.new(0.5, 0.5), BackgroundColor3 = Color3.fromRGB(20, 20, 20), Active = true, Draggable = true }) Corner(KeyMenu)
+
+local TextBox = Create("TextBox", KeyMenu, {
+  Size = UDim2.new(1, -40, 0, 40),
+  Position = UDim2.new(0, 20, 0, 60),
+  PlaceholderText = "Enter Key",
+  Font = Enum.Font.Gotham,
+  TextSize = 20,
+  BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+  TextColor3 = Color3.fromRGB(255, 255, 255)
+})
+Corner(TextBox)
+
+local Confirm = Create("TextButton", KeyMenu, {
+  Size = UDim2.new(0.5, -25, 0, 40),
+  Position = UDim2.new(0, 20, 0, 120),
+  Text = "Confirm",
+  Font = Enum.Font.GothamBold,
+  TextColor3 = Color3.fromRGB(255, 255, 255),
+  BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+})
+Corner(Confirm)
+
+Confirm.MouseButton1Click:Connect(function()
+  for _, v in ipairs(KeyKey) do
+    if TextBox.Text == v then
+      KeyVerify = true
     end
+  end
 end)
-Main.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
 
--- Title
-local Title = Instance.new("TextLabel", Main)
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.new(1, 1, 1)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
-Title.Text = titleText or "KHATA HUB"
-Title.Name = "Title"
-
--- Tab Buttons (left)
-local TabButtons = Instance.new("Frame", Main)
-TabButtons.Size = UDim2.new(0, 100, 1, 0)
-TabButtons.BackgroundTransparency = 1
-
-local TabList = Instance.new("UIListLayout", TabButtons)
-TabList.Padding = UDim.new(0, 5)
-TabList.SortOrder = Enum.SortOrder.LayoutOrder
-
--- Content Area (right)
-local ContentHolder = Instance.new("Frame", Main)
-ContentHolder.Size = UDim2.new(1, -110, 1, -10)
-ContentHolder.Position = UDim2.new(0, 110, 0, 5)
-ContentHolder.BackgroundTransparency = 1
-
-local Tabs = {}
-local CurrentTab = nil
-
-local function SwitchTab(tabName)
-    for name, frame in pairs(Tabs) do
-        frame.Visible = (name == tabName)
-    end
-    CurrentTab = tabName
-end
-
-local function CreateTab(name)
-    -- Tab Button
-    local Button = Instance.new("TextButton", TabButtons)
-    Button.Size = UDim2.new(1, -10, 0, 30)
-    Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    Button.Text = name
-    Button.TextColor3 = Color3.new(1,1,1)
-    Button.Font = Enum.Font.Gotham
-    Button.TextSize = 14
-    Instance.new("UICorner", Button).CornerRadius = UDim.new(0, 6)
-
-    -- Tab Content
-    local TabFrame = Instance.new("Frame", ContentHolder)
-    TabFrame.Size = UDim2.new(1, 0, 1, 0)
-    TabFrame.BackgroundTransparency = 1
-    TabFrame.Visible = false
-
-    local Layout = Instance.new("UIListLayout", TabFrame)
-    Layout.Padding = UDim.new(0, 6)
-    Layout.SortOrder = Enum.SortOrder.LayoutOrder
-
-    Tabs[name] = TabFrame
-
-    Button.MouseButton1Click:Connect(function()
-        SwitchTab(name)
-    end)
-
-    if not CurrentTab then
-        SwitchTab(name)
-    end
-
-    local TabAPI = {}
-
-    function TabAPI:AddButton(text, callback)
-        local Button = Instance.new("TextButton", TabFrame)
-        Button.Size = UDim2.new(0, 360, 0, 40)
-        Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        Button.Text = text
-        Button.Font = Enum.Font.Gotham
-        Button.TextColor3 = Color3.new(0, 0, 0)
-        Button.BorderSizePixel = 0
-        Instance.new("UICorner", Button).CornerRadius = UDim.new(0.2, 0)
-        Button.MouseButton1Click:Connect(callback)
-    end
-
-    function TabAPI:AddToggle(text, callback)
-        local OnOff = false
-        local Frame = Instance.new("Frame", TabFrame)
-        Frame.Size = UDim2.new(0, 360, 0, 30)
-        Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        local Stroke = Instance.new("UIStroke", Frame)
-        Stroke.Color = Color3.fromRGB(200, 200, 200)
-        Instance.new("UICorner", Frame).CornerRadius = UDim.new(1, 0)
-
-        local Dot = Instance.new("Frame", Frame)
-        Dot.Size = UDim2.new(0, 20, 0, 20)
-        Dot.Position = UDim2.new(0, 2, 0.5, -10)
-        Dot.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-        Instance.new("UICorner", Dot).CornerRadius = UDim.new(1, 0)
-
-        local Label = Instance.new("TextLabel", Frame)
-        Label.Position = UDim2.new(0, 30, 0, 0)
-        Label.Size = UDim2.new(1, -30, 1, 0)
-        Label.Text = text
-        Label.Font = Enum.Font.Gotham
-        Label.TextColor3 = Color3.fromRGB(50, 50, 50)
-        Label.TextXAlignment = Enum.TextXAlignment.Left
-        Label.BackgroundTransparency = 1
-        Label.TextSize = 14
-
-        Frame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                OnOff = not OnOff
-                if OnOff then
-                    CreateTween(Dot, "Position", UDim2.new(0, 10, 0.5, -10), 0.2)
-                    CreateTween(Dot, "BackgroundColor3", Color3.fromRGB(28, 120, 212), 0.2)
-                    CreateTween(Stroke, "Color", Color3.fromRGB(28, 120, 212), 0.2)
-                    CreateTween(Label, "TextColor3", Color3.fromRGB(28, 120, 212), 0.2)
-                    callback(true)
-                else
-                    CreateTween(Dot, "Position", UDim2.new(0, 2, 0.5, -10), 0.2)
-                    CreateTween(Dot, "BackgroundColor3", Color3.fromRGB(100, 100, 100), 0.2)
-                    CreateTween(Stroke, "Color", Color3.fromRGB(200, 200, 200), 0.2)
-                    CreateTween(Label, "TextColor3", Color3.fromRGB(50, 50, 50), 0.2)
-                    callback(false)
-                end
-            end
-        end)
-    end
-
-    return TabAPI
-end
-
-return {
-    CreateTab = CreateTab,
-    SetTitle = function(text)
-        Title.Text = text
-    end
-}
+repeat task.wait() until KeyVerify
+KeyMenu:Destroy()
 
 end
 
-return KhataUI
+local Menu = Create("Frame", ScreenGui, { Size = UDim2.new(0, 500, 0, 270), Position = UDim2.new(0.5, -250, 0.5, -135), BackgroundColor3 = Color3.fromRGB(20, 20, 20), Active = true, Draggable = true }) Corner(Menu)
+
+return Menu end
+
