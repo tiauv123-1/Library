@@ -62,8 +62,7 @@ local TextBox = Create("TextBox", KeyMenu, {
   TextSize = 20,
   BackgroundColor3 = Color3.fromRGB(35, 35, 35),
   TextColor3 = Color3.fromRGB(255, 255, 255)
-})
-Corner(TextBox)
+}) Corner(TextBox)
 
 local Confirm = Create("TextButton", KeyMenu, {
   Size = UDim2.new(0.5, -25, 0, 40),
@@ -72,8 +71,7 @@ local Confirm = Create("TextButton", KeyMenu, {
   Font = Enum.Font.GothamBold,
   TextColor3 = Color3.fromRGB(255, 255, 255),
   BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-})
-Corner(Confirm)
+}) Corner(Confirm)
 
 Confirm.MouseButton1Click:Connect(function()
   for _, v in ipairs(KeyKey) do
@@ -91,4 +89,5 @@ end
 local Menu = Create("Frame", ScreenGui, { Size = UDim2.new(0, 500, 0, 270), Position = UDim2.new(0.5, -250, 0.5, -135), BackgroundColor3 = Color3.fromRGB(20, 20, 20), Active = true, Draggable = true }) Corner(Menu)
 
 return Menu end
+
 
