@@ -188,7 +188,7 @@ local function AddTab(Name)
     local Page = Create("ScrollingFrame", Containers, {
         Size = UDim2.new(1, -12, 1, -12),
         Position = UDim2.new(0, 8, 0, 8),
-        BackgroundColor3 = Configs_HUB.Cor_Hub
+        BackgroundColor3 = Configs_HUB.Cor_Hub,
         BackgroundTransparency = 0.1,
         ScrollBarThickness = 3,
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
