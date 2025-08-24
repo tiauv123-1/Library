@@ -59,7 +59,7 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "NghiaDzUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
-ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.Parent = game:GetService("PlayerGui")
 
 local Menu = Create("Frame", ScreenGui, {
     Name = "Menu",
