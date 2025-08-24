@@ -125,7 +125,7 @@ end
 --== NÚT THU NHỎ
 local function MinimizeButton(Configs)
     local image = Configs.Image or "http://www.roblox.com/asset/?id=114803447252543"
-    local size  = Configs.Size  or {36, 36}
+    local size  = Configs.Size  or {55, 55}
 
     local Button = Create("ImageButton", ScreenGui, {
         Size = UDim2.new(0, size[1], 0, size[2]),
@@ -188,7 +188,7 @@ local function AddTab(Name)
     local Page = Create("ScrollingFrame", Containers, {
         Size = UDim2.new(1, -12, 1, -12),
         Position = UDim2.new(0, 8, 0, 8),
-        BackgroundColor3 = Configs_HUB.Cor_Hub_Text
+        BackgroundColor3 = Configs_HUB.Cor_Hub
         BackgroundTransparency = 0.1,
         ScrollBarThickness = 3,
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
