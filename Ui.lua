@@ -350,11 +350,3 @@ local function AddDropdown(parent, Configs)
     end
     Callback(Default)
 end
-
---== DEMO
-local tabMain = AddTab("Main")
-AddButton(tabMain, {Name = "Run", Callback = function() print("Run") end})
-
--- Toggle AutoFarm chuẩn
-local farming = false
-AddToggle
